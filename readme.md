@@ -114,7 +114,6 @@ Every PR must include a LangSmith trace URL and tradeoff reasoning.
 
 ## Reference materials
 - [LangGraph cheatsheet](docs/langgraph-cheatsheet.md)
-- [FounderBuddy reference](docs/founderbuddy-reference.md)
 - [LangSmith setup](docs/langsmith-setup.md)
 
 ## Stack
