@@ -18,18 +18,13 @@ class RouterDirective(str, Enum):
 
 
 class SectionID(str, Enum):
-    """Your agent's section identifiers.
+    """FitnessBuddy's five conversation sections, in order.
 
-    TODO: Rename these to match your domain.
-    For example, if you're building StudentBuddy:
-      GOALS = "goals"
-      SCHEDULE = "schedule"
-      RESOURCES = "resources"
-      STUDY_PLAN = "study_plan"
-      REVIEW = "review"
+    The agent guides the user through these one at a time, then synthesizes a
+    training + nutrition plan from the data collected across all five.
     """
-    SECTION_1 = "section_1"
-    SECTION_2 = "section_2"
-    SECTION_3 = "section_3"
-    SECTION_4 = "section_4"
-    SECTION_5 = "section_5"
+    GOALS = "goals"              # what they want: build muscle, lose fat, run a 10k...
+    PROFILE = "profile"          # current state: age, body stats, injuries
+    SCHEDULE = "schedule"        # when/where they train: days/week, session length, location, equipment
+    PREFERENCES = "preferences"  # training-style likes/dislikes, intensity
+    NUTRITION = "nutrition"      # diet pattern, restrictions, calorie/meal targets

@@ -39,16 +39,40 @@ class ContextPacket(BaseModel):
 
 
 class XBuddyData(BaseModel):
-    """Domain-specific data collected from the user.
+    """Fitness data collected from the user across the five sections.
 
-    TODO: Replace these fields with data relevant to your domain.
-    For example, StudentBuddy might have:
-      learning_goals: list[str]
-      current_level: str
-      available_hours_per_week: int
-      preferred_subjects: list[str]
+    Every field is optional / defaulted on purpose: data is gathered
+    incrementally across many turns, so the state must be valid at every
+    partial step — the agent fills fields in as the conversation progresses.
     """
-    pass
+    # Section 1 — GOALS
+    primary_goal: str | None = None          # e.g. "build muscle", "lose fat", "run a 10k"
+    goal_timeline_weeks: int | None = None   # target timeframe in weeks
+    motivation: str | None = None            # why it matters to them
+
+    # Section 2 — PROFILE (current state)
+    age: int | None = None
+    sex: str | None = None
+    height_cm: float | None = None
+    weight_kg: float | None = None
+    injuries_or_limitations: str | None = None
+
+    # Section 3 — SCHEDULE (when/where they train + equipment)
+    days_per_week: int | None = None
+    session_length_minutes: int | None = None
+    training_location: str | None = None     # "gym" / "home" / "outdoors"
+    available_equipment: list[str] = Field(default_factory=list)
+
+    # Section 4 — PREFERENCES
+    preferred_training_styles: list[str] = Field(default_factory=list)  # strength, HIIT, running...
+    disliked_exercises: list[str] = Field(default_factory=list)
+    intensity_preference: str | None = None  # "low" / "moderate" / "high"
+
+    # Section 5 — NUTRITION
+    dietary_pattern: str | None = None       # "omnivore" / "vegetarian" / "vegan" ...
+    dietary_restrictions: list[str] = Field(default_factory=list)  # allergies, dislikes
+    daily_calorie_target: int | None = None
+    meals_per_day: int | None = None
 
 
 class ChatAgentDecision(BaseModel):
@@ -104,7 +128,7 @@ class XBuddyState(MessagesState):
     thread_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
 
     # Navigation and progress
-    current_section: SectionID = SectionID.SECTION_1
+    current_section: SectionID = SectionID.GOALS
     context_packet: ContextPacket | None = None
     section_states: dict[str, SectionState] = Field(default_factory=dict)
     router_directive: str = RouterDirective.NEXT
