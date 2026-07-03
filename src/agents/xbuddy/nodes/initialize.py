@@ -34,7 +34,7 @@ async def initialize_node(state: XBuddyState, config: RunnableConfig) -> dict:
     # 1. Identity — pull from config on cold start, never overwrite once set.
     if not state.get("user_id") and configurable.get("user_id") is not None:
         updates["user_id"] = configurable["user_id"]
-    if not state.get("thread_id") and configurable.get("thread_id"):
+    if not state.get("thread_id") and configurable.get("thread_id") is not None:
         updates["thread_id"] = configurable["thread_id"]
 
     # 2. Navigation defaults / validation. If current_section is missing or
