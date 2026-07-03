@@ -40,8 +40,8 @@ class LLMConfig:
     🛠️ MODIFY THESE 4 VALUES TO CONTROL YOUR ENTIRE AI SYSTEM:
     """
     
-    DEFAULT_MODEL: AllModelEnum = OpenAIModelName.GPT_4O  # Which model to use
-    DEFAULT_TEMPERATURE: float = 0.0                      # 0.0=deterministic, 1.0=creative  
+    DEFAULT_MODEL: AllModelEnum = AnthropicModelName.SONNET_46  # Which model to use
+    DEFAULT_TEMPERATURE: float = 0.4                      # 0.0=deterministic, 1.0=creative
     DEFAULT_MAX_TOKENS: int = 3000                        # Max response length
     DEFAULT_TOP_P: float = 0.9                           # Sampling diversity
     
