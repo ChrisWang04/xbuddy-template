@@ -35,6 +35,8 @@ async def get_context(
         {r.field_name: r.model_dump() for r in template.validation_rules} or None
     )
 
+    # NOTE: this mirrors the context-packet assembly in router_node.router_node.
+    # If ContextPacket's shape ever changes, update both places. (See MOSS review, PR 2.)
     return {
         "section_id": sid.value,
         "status": SectionStatus.IN_PROGRESS.value,
