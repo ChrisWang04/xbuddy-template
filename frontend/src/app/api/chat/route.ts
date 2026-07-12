@@ -17,7 +17,7 @@ export async function POST(req: Request) {
   const requestStartTime = Date.now();
   
   try {
-    const { messages, userId, threadId, mode = 'stream', agentId = 'value-canvas' } = await req.json();
+    const { messages, userId, threadId, mode = 'stream', agentId = 'xbuddy' } = await req.json();
     const latestMessage = messages[messages.length - 1]?.content || '';
     
     // Detailed request start log
@@ -78,9 +78,13 @@ export async function POST(req: Request) {
     }
 
     const isLocal = process.env.NEXT_PUBLIC_API_ENV === 'local';
-    const apiUrl = isLocal 
-      ? process.env.VALUE_CANVAS_API_URL_LOCAL 
-      : process.env.VALUE_CANVAS_API_URL_PRODUCTION;
+    // Prefer the sensibly-named NEXT_PUBLIC_API_URL (points at the Fly backend);
+    // fall back to the template's legacy var names if it isn't set.
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL ||
+      (isLocal
+        ? process.env.VALUE_CANVAS_API_URL_LOCAL
+        : process.env.VALUE_CANVAS_API_URL_PRODUCTION);
     
     // Check if API URL is configured
     if (!apiUrl) {
