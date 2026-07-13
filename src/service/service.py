@@ -300,26 +300,13 @@ async def _handle_input(user_input: UserInput, agent: AgentGraph, agent_id: str)
 
     initial_state = None
     if not thread_id:
-        # This is a new conversation, so we need to initialize a new state
-        if agent_id == "xbuddy":
-            initial_state = await initialize_xbuddy_state(user_id=user_id)
-        else:
+        # New conversation: mint a thread_id for LangGraph's checkpointer.
+        # State bootstrapping (section_states, current_section, identity) is
+        # handled by the graph's initialize_node from config on cold start.
+        if agent_id != "xbuddy":
             raise ValueError(f"Unknown agent: {agent_id}")
 
-        # Get the generated thread_id from initial_state
-        # For dict-like states, use .get(), for Pydantic models use direct access
-        logger.info(f"DEBUG: initial_state type = {type(initial_state)}")
-        logger.info(f"DEBUG: hasattr(initial_state, 'user_id') = {hasattr(initial_state, 'user_id')}")
-
-        if hasattr(initial_state, 'user_id'):
-            user_id = initial_state.user_id
-            thread_id = initial_state.thread_id
-            logger.info(f"DEBUG: Got user_id={user_id}, thread_id={thread_id} from Pydantic model")
-        else:
-            user_id = initial_state.get("user_id")
-            thread_id = initial_state.get("thread_id")
-            logger.info(f"DEBUG: Got user_id={user_id}, thread_id={thread_id} from dict")
-
+        thread_id = str(uuid4())
         logger.info(f"Initialized new thread with ID: {thread_id}")
     else:
         # This is an existing conversation, so we load the state
@@ -467,16 +454,20 @@ async def invoke(user_input: UserInput, agent_id: str = DEFAULT_AGENT) -> Invoke
             current_section_enum = state.values["current_section"]
             current_section_id = current_section_enum.value  # Use the string value
             section_state = state.values.get("section_states", {}).get(current_section_id)
-            # Choose the right section templates based on agent_id
-            if agent_id == "xbuddy":
-                section_templates = FOUNDER_BUDDY_TEMPLATES
-            else:
+            # Resolve the section template from the agent's own registry.
+            # xbuddy has no section->DB-id mapping, so database_id stays None.
+            if agent_id != "xbuddy":
                 raise ValueError(f"Unknown agent: {agent_id}")
-            
-            section_template = section_templates.get(current_section_id)
+
+            from agents.xbuddy.prompts import get_section_template
+
+            try:
+                section_template = get_section_template(current_section_enum)
+            except (ValueError, TypeError):
+                section_template = None
 
             section_data = {
-                "database_id": SECTION_ID_MAPPING.get(current_section_id),
+                "database_id": None,
                 "name": section_template.name if section_template else "Unknown Section",
                 "status": section_state.status.value if section_state else "pending",
             }
@@ -771,26 +762,20 @@ async def message_generator(
                 current_section_id = current_section_enum.value  # Use the string value
                 section_state = state.values.get("section_states", {}).get(current_section_id)
                 
-                # Choose the right section templates based on agent_id
-                if agent_id == "mission-pitch":
-                    section_templates = MISSION_PITCH_TEMPLATES
-                elif agent_id == "social-pitch":
-                    section_templates = SOCIAL_PITCH_TEMPLATES
-                elif agent_id == "signature-pitch":
-                    section_templates = SIGNATURE_PITCH_TEMPLATES
-                elif agent_id == "special-report":
-                    section_templates = SPECIAL_REPORT_TEMPLATES
-                elif agent_id == "concept-pitch":
-                    section_templates = CONCEPT_PITCH_TEMPLATES
-                elif agent_id == "xbuddy":
-                    section_templates = FOUNDER_BUDDY_TEMPLATES
-                else:  # default to value_canvas
-                    section_templates = VALUE_CANVAS_TEMPLATES
-                
-                section_template = section_templates.get(current_section_id)
+                # xbuddy: resolve the section template from the agent's own
+                # registry. No section->DB-id mapping exists, so database_id=None.
+                if agent_id != "xbuddy":
+                    raise ValueError(f"Unknown agent: {agent_id}")
+
+                from agents.xbuddy.prompts import get_section_template
+
+                try:
+                    section_template = get_section_template(current_section_enum)
+                except (ValueError, TypeError):
+                    section_template = None
 
                 section_data = {
-                    "database_id": SECTION_ID_MAPPING.get(current_section_id),
+                    "database_id": None,
                     "name": section_template.name if section_template else "Unknown Section",
                     "status": section_state.status.value if section_state else "pending",
                 }
@@ -952,14 +937,14 @@ async def notify_section_update(
     if not thread_id:
         raise HTTPException(status_code=422, detail="Missing required parameter: thread_id")
     
-    # Choose the right section templates based on agent_id
-    if agent_id == "xbuddy":
-        section_templates = FOUNDER_BUDDY_TEMPLATES
-    else:
+    # Validate the section against xbuddy's own section registry.
+    if agent_id != "xbuddy":
         raise ValueError(f"Unknown agent: {agent_id}")
-    
-    # Validate section_id
-    if section_id_str not in section_templates:
+
+    from agents.xbuddy.enums import SectionID
+
+    valid_section_ids = {s.value for s in SectionID}
+    if section_id_str not in valid_section_ids:
         raise HTTPException(status_code=422, detail=f"Unknown section_id: {section_id}")
 
     # Trigger a minimal graph run to refresh context
