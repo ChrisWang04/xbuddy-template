@@ -44,7 +44,7 @@ export default function ChatArea({
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const [isGeneratingLLM, setIsGeneratingLLM] = useState(false);
-  const [isAutoMode, setIsAutoMode] = useState(false);
+  const [isAutoMode] = useState(false);  // auto-conversation removed; kept false so existing guards still work
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoModeRef = useRef(false);
@@ -707,56 +707,6 @@ export default function ChatArea({
               <>
                 <span>🤖</span>
                 <span>Auto Reply</span>
-              </>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (isAutoMode) {
-                setIsAutoMode(false);
-                // If generating LLM, stop it immediately
-                if (isGeneratingLLM) {
-                  setIsGeneratingLLM(false);
-                }
-              } else {
-                setIsAutoMode(true);
-                // Start the conversation if no messages yet
-                if (messages.length === 0) {
-                  handleAutoReply(true);
-                }
-              }
-            }}
-            disabled={!selectedAgent || !userId || (!isAutoMode && (isLoading || isGeneratingLLM))}
-            style={{
-              padding: '12px 20px',
-              backgroundColor: isAutoMode
-                ? '#dc2626'
-                : (!selectedAgent || !userId || isLoading || isGeneratingLLM)
-                  ? '#d1d5db'
-                  : '#8b5cf6',
-              color: 'white',
-              borderRadius: '8px',
-              border: 'none',
-              fontSize: '14px',
-              cursor: (!selectedAgent || !userId || (!isAutoMode && (isLoading || isGeneratingLLM))) ? 'not-allowed' : 'pointer',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease'
-            }}
-            title={isAutoMode ? "Stop auto conversation" : "Start auto conversation"}
-          >
-            {isAutoMode ? (
-              <>
-                <span>⏹️</span>
-                <span>Stop Auto</span>
-              </>
-            ) : (
-              <>
-                <span>▶️</span>
-                <span>Start Auto</span>
               </>
             )}
           </button>
