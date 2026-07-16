@@ -44,7 +44,7 @@ export default function ChatArea({
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const [isGeneratingLLM, setIsGeneratingLLM] = useState(false);
-  const [isAutoMode] = useState(false);  // auto-conversation removed; kept false so existing guards still work
+  const [isAutoMode, setIsAutoMode] = useState(false);  // auto-conversation button removed; setter still used to reset on thread switch
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoModeRef = useRef(false);
