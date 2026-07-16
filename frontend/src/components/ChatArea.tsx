@@ -134,14 +134,14 @@ export default function ChatArea({
 
   const getAgentName = (agentId: string) => {
     const names: Record<string, string> = {
-      'xbuddy': 'XBuddy'
+      'xbuddy': 'FitnessBuddy'
     };
     return names[agentId] || 'AI Agent';
   };
 
   const getPlaceholderText = (agentId: string) => {
     const placeholders: Record<string, string> = {
-      'xbuddy': 'Try: "I want to validate my startup idea"'
+      'xbuddy': 'Try: "I want to build a workout plan"'
     };
     return placeholders[agentId] || 'Type your message...';
   };
@@ -436,7 +436,7 @@ export default function ChatArea({
                color: '#64748b',
                margin: '4px 0 0 0'
              }}>
-               {selectedAgent === 'xbuddy' && 'Validate and refine your startup idea'}
+               {selectedAgent === 'xbuddy' && 'Build a personalized training & nutrition plan'}
              </p>
            )}
          </div>
