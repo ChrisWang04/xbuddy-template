@@ -86,8 +86,10 @@ async def generate_decision_node(state: XBuddyState, config: RunnableConfig) -> 
 
     # A cheaper/faster model is plenty for a structured classification.
     model = get_model(AnthropicModelName.HAIKU_45).with_structured_output(ChatAgentDecision)
+    # Defensive: tag skip_stream so this internal classification never leaks into the SSE stream.
+    skip_cfg = {**(config or {}), "tags": [*((config or {}).get("tags") or []), "skip_stream"]}
     try:
-        decision = await model.ainvoke([SystemMessage(content=system), *history], config)
+        decision = await model.ainvoke([SystemMessage(content=system), *history], skip_cfg)
     except Exception as exc:  # unparseable / LLM error -> safe fallback
         logger.warning("generate_decision | failed (%s) — defaulting to STAY", exc)
         decision = ChatAgentDecision(

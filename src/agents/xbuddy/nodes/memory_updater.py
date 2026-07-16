@@ -77,7 +77,11 @@ async def _summarize_section(section: SectionID, history: list, config: Runnable
         f"Use only what the user actually said. If little was provided, note what's still missing."
     )
     model = get_model(AnthropicModelName.HAIKU_45)
-    resp = await model.ainvoke([HumanMessage(content=prompt)], config)
+    # Tag as skip_stream so these summary tokens are NOT pushed to the user-facing SSE
+    # stream (the /stream endpoint drops tokens carrying this tag). Without it, this
+    # internal third-person summary leaks into the reply bubble.
+    skip_cfg = {**(config or {}), "tags": [*((config or {}).get("tags") or []), "skip_stream"]}
+    resp = await model.ainvoke([HumanMessage(content=prompt)], skip_cfg)
     return _text(resp.content).strip()
 
 
