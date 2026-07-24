@@ -44,7 +44,7 @@ export default function ChatArea({
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [copiedAll, setCopiedAll] = useState(false);
   const [isGeneratingLLM, setIsGeneratingLLM] = useState(false);
-  const [isAutoMode, setIsAutoMode] = useState(false);
+  const [isAutoMode, setIsAutoMode] = useState(false);  // auto-conversation button removed; setter still used to reset on thread switch
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const autoModeRef = useRef(false);
@@ -134,14 +134,14 @@ export default function ChatArea({
 
   const getAgentName = (agentId: string) => {
     const names: Record<string, string> = {
-      'xbuddy': 'XBuddy'
+      'xbuddy': 'FitnessBuddy'
     };
     return names[agentId] || 'AI Agent';
   };
 
   const getPlaceholderText = (agentId: string) => {
     const placeholders: Record<string, string> = {
-      'xbuddy': 'Try: "I want to validate my startup idea"'
+      'xbuddy': 'Try: "I want to build a workout plan"'
     };
     return placeholders[agentId] || 'Type your message...';
   };
@@ -266,10 +266,11 @@ export default function ChatArea({
                 } else if (parsed.type === 'section') {
                   onSectionUpdate(parsed.content);
                 } else if (parsed.type === 'final_response') {
-                  // Handle final response if needed
-                  if (parsed.threadId && !threadId) {
-                    onThreadIdChange(parsed.threadId);
-                  }
+                  // Thread identity is owned solely by the 'metadata' event.
+                  // Do NOT set threadId here: final_response may carry a
+                  // per-request id, and the stale render-closure `threadId`
+                  // (still null within turn 1) would let it clobber the correct
+                  // thread_id, fragmenting the conversation across thread_ids.
                   if (parsed.section) {
                     onSectionUpdate(parsed.section);
                   }
@@ -436,7 +437,7 @@ export default function ChatArea({
                color: '#64748b',
                margin: '4px 0 0 0'
              }}>
-               {selectedAgent === 'xbuddy' && 'Validate and refine your startup idea'}
+               {selectedAgent === 'xbuddy' && 'Build a personalized training & nutrition plan'}
              </p>
            )}
          </div>
@@ -707,56 +708,6 @@ export default function ChatArea({
               <>
                 <span>🤖</span>
                 <span>Auto Reply</span>
-              </>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              if (isAutoMode) {
-                setIsAutoMode(false);
-                // If generating LLM, stop it immediately
-                if (isGeneratingLLM) {
-                  setIsGeneratingLLM(false);
-                }
-              } else {
-                setIsAutoMode(true);
-                // Start the conversation if no messages yet
-                if (messages.length === 0) {
-                  handleAutoReply(true);
-                }
-              }
-            }}
-            disabled={!selectedAgent || !userId || (!isAutoMode && (isLoading || isGeneratingLLM))}
-            style={{
-              padding: '12px 20px',
-              backgroundColor: isAutoMode
-                ? '#dc2626'
-                : (!selectedAgent || !userId || isLoading || isGeneratingLLM)
-                  ? '#d1d5db'
-                  : '#8b5cf6',
-              color: 'white',
-              borderRadius: '8px',
-              border: 'none',
-              fontSize: '14px',
-              cursor: (!selectedAgent || !userId || (!isAutoMode && (isLoading || isGeneratingLLM))) ? 'not-allowed' : 'pointer',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease'
-            }}
-            title={isAutoMode ? "Stop auto conversation" : "Start auto conversation"}
-          >
-            {isAutoMode ? (
-              <>
-                <span>⏹️</span>
-                <span>Stop Auto</span>
-              </>
-            ) : (
-              <>
-                <span>▶️</span>
-                <span>Start Auto</span>
               </>
             )}
           </button>

@@ -384,14 +384,18 @@ export async function POST(req: Request) {
                   });
                   
                   // Handle different types of streaming data
-                  if (parsed.type === 'token') {
+                  if (parsed.type === 'metadata') {
+                    // The metadata event is the single source of truth for the
+                    // stable conversation thread_id. run_id is per-request and
+                    // must never be treated as the thread_id.
+                    if (parsed.content?.thread_id) {
+                      finalThreadId = parsed.content.thread_id;
+                    }
+                  } else if (parsed.type === 'token') {
                     tokenCount++;
                     finalContent += parsed.content;
                   } else if (parsed.type === 'message') {
                     finalContent = parsed.content.content || finalContent;
-                    if (parsed.content.run_id) {
-                      finalThreadId = parsed.content.run_id;
-                    }
                     if (parsed.content.custom_data) {
                       finalSection = parsed.content.custom_data.section;
                       finalUserId_response = parsed.content.custom_data.user_id;
